@@ -16,7 +16,7 @@ let value = 0
     >
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter">
-          Election Result
+          Results
         </Modal.Title>
       </Modal.Header>
       {props.loading ? <h3>Loading...</h3> :
@@ -50,7 +50,7 @@ let value = 0
                 <h5>0 Algo</h5>
               </Col> */}
               <Col>
-                <p>Governors Voted </p>
+                <p> Voted </p>
                 {
                   props.data.map((item) => {
                    myList.push(item.value.uint)
