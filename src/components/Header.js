@@ -1,73 +1,75 @@
 /*global AlgoSigner*/
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Container,Row, Col, Button} from 'react-bootstrap'
 import logo from '../assets/images/AlgoVote.svg'
 import { CONSTANTS } from './Constants';
-import algosdk from'algosdk';
+import algosdk, { waitForConfirmation } from'algosdk';
 import MessageAlert from './Alert';
 
-export default function Header (){
+export default function Header ({peraWallet}){
   let client = new algosdk.Algodv2(CONSTANTS.algodToken, CONSTANTS.baseServer, CONSTANTS.port)
   const [alert, setAlert] = useState(false)
+  const [userAccount, setUserAccount] = useState(null)
+  const appIndex = CONSTANTS.APP_ID
 
-  let userAccount = useRef()
   const connectAlgoSigner = async () => {
-    await AlgoSigner.connect()
-        getUserAccount()
+    // await AlgoSigner.connect()
+    //     getUserAccount()
+    peraWallet.connect().then((newAccounts) => {
+      // setup the disconnect event listener
+      peraWallet.connector?.on('disconnect', handleDisconnectWalletClick);
+      setUserAccount(newAccounts)
+    });
   }
 
-  const getUserAccount = async () =>{
-    userAccount.current =  await AlgoSigner.accounts({
-         ledger: 'TestNet'
-       })
- console.log(userAccount.current[0]['address'])
-//  console.log(userAccount.current)
-  
- }
+  function handleDisconnectWalletClick() {
+    peraWallet.disconnect();
+    setUserAccount(null)
+  }
+
+  useEffect(() => {
+    // reconnect to session when the component is mounted
+    peraWallet.reconnectSession().then((accounts) => {
+      // Setup disconnect event listener
+      peraWallet.connector?.on('disconnect', handleDisconnectWalletClick);
+
+      if (accounts.length) {
+        setUserAccount(accounts);
+      }
+    })
+
+  }, []);
+
 
  //OPTIN
 // create unsigned transaction
 const Optin = async (sender, index) => {
-  try{
-    let params = await client.getTransactionParams().do()
-    params.fee = 1000;
-    params.flatFee = true;
+  try {
+    console.log(sender)
+    const suggestedParams = await client.getTransactionParams().do();
+    const optInTxn = algosdk.makeApplicationOptInTxn(
+      sender,
+      suggestedParams,
+      index
+    );
+    const actionTxGroup = [{ txn: optInTxn, signers: [sender] }];
 
-    let txn = algosdk.makeApplicationOptInTxn(sender, params, index);
-    // sign, send, await
-    // Sign the transaction
-
-    const txn_b64 = await AlgoSigner.encoding.msgpackToBase64(txn.toByte());
-
-    let signedTxs  = await AlgoSigner.signTxn([{txn: txn_b64}])
-     console.log(signedTxs)
-
-     // Get the base64 encoded signed transaction and convert it to binary
-   let binarySignedTx = await AlgoSigner.encoding.base64ToMsgpack(signedTxs[0].blob);
-
-    // Send the transaction through the SDK client
-   let txId = await client.sendRawTransaction(binarySignedTx).do();
-       console.log(txId)
-                          
-  // Wait for transaction to be confirmed
-    const confirmedTxn = await algosdk.waitForConfirmation(client, txId, 4);
-    console.log("confirmed" + confirmedTxn)
-
-  //Get the completed Transaction
-  console.log("Transaction " + txId + " confirmed in round " + confirmedTxn["confirmed-round"]);
-        // display results
-    let transactionResponse = await client.pendingTransactionInformation(txId).do();
-    console.log("Opted-in to app-id:",transactionResponse['txn']['txn']['apid'])
-  }catch(err){
-    console.log(err)
+    const signedTx = await peraWallet.signTransaction([actionTxGroup]);
+    console.log(signedTx);
+    const { txId } = await client.sendRawTransaction(signedTx).do();
+    const result = await waitForConfirmation(client, txId, 2);
+    console.log(`Success`);
+  } catch (e) {
+    console.error(`There was an error calling the counter app: ${e}`);
   }
 }
   const register = () => {
-    if(userAccount.current === undefined){
+    console.log(userAccount)
+    if(userAccount === null){
       // alert("Connect your wallet")
       setAlert(true)
     }else{
-      Optin(userAccount.current[0].address,CONSTANTS.APP_ID)
+      Optin(userAccount[0],CONSTANTS.APP_ID)
     }
 
   }
@@ -75,7 +77,7 @@ const Optin = async (sender, index) => {
     setAlert(false)
   }
   return(
-    <div>
+    <div style={{ backgroundColor: '#E9E9E9' }}>
       <Container style={{marginTop: '24px'}}>
         <Row>
           <Col>
@@ -95,12 +97,12 @@ const Optin = async (sender, index) => {
           </Col>
           <Col md='4' style={{display: 'inline'}}> 
           {/* <h4>Voting Ends in </h4> */}
-          <Button style={{backgroundColor: 'orange'}} onClick={() => register()}>Register</Button>
+          <Button style={{backgroundColor: 'black'}} onClick={() => register()}>Register</Button>
           {/* <h4 id='demo' style={{color: 'red'}}></h4> */}
           <MessageAlert show={alert} close={() => handleClose()} variant={"danger"} title="Connect Wallet" message= "Please connect your wallet"/>
           </Col>
           <Col md='auto'>
-            <Button style={{backgroundColor: '#6C63FF'}} onClick={connectAlgoSigner}>Connect Wallet</Button>
+            <Button style={{backgroundColor: '#F28FA9', borderColor: '#F28FA9'}} onClick={connectAlgoSigner}>Connect Wallet</Button>
           </Col>
         </Row>
       </Container>

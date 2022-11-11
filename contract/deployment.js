@@ -1,6 +1,7 @@
 require('dotenv').config()
 const fs = require('fs')
 const algosdk = require('algosdk');
+const { btoa } = require('buffer');
 
 
 //SMART CONTRACT DEPLOYMENT
@@ -28,13 +29,13 @@ const algosdk = require('algosdk');
 
   console.log()
   // Connect your client
-  const algodToken = process.env.REACT_APP_API_KEY;
-  const baseServer = 'https://testnet-algorand.api.purestake.io/ps2/';
-  const port = "";
-  const headers ={"X-API-Key": process.env.REACT_APP_API_KEY}  
+  const algodToken = '';
+  const baseServer = 'https://testnet-api.algonode.cloud';
+  const port = 443;
+  // const headers ={"X-API-Key": process.env.REACT_APP_API_KEY}  
     
   console.log(process.env) 
-  let client = new algosdk.Algodv2(algodToken, baseServer, port, headers)
+  let client = new algosdk.Algodv2(algodToken, baseServer, port)
 
   // Read Teal File
   let approvalProgram = ''
@@ -368,16 +369,16 @@ const clear_program = await  compileProgram(client,clear_state_program )
 // configure registration and voting period
 let status = await client.status().do()
 console.log(status)
-let RegBegin =  status['last-round'] + 10
+let RegBegin =  status['last-round'] + 500
 // let regBegin =  status['time-since-last-round'] + 60
-let RegEnd = RegBegin + 10
-let VoteBegin = RegEnd + 10
-let VoteEnd = VoteBegin + 10
+let RegEnd = RegBegin + 500
+let VoteBegin = RegEnd + 500
+let VoteEnd = VoteBegin + 500
 
 const regTime = `Registration rounds: ${RegBegin} to ${RegEnd}`
 const voteTime = `Vote rounds: ${VoteBegin} to ${VoteEnd}`
-localStorage.setItem('start', regTime)
-localStorage.setItem('end',voteTime )
+// localStorage.setItem('start', regTime)
+// localStorage.setItem('end',voteTime )
 
 console.log(`Registration rounds: ${RegBegin} to ${RegEnd}`)
 console.log(`Vote rounds: ${VoteBegin} to ${VoteEnd}`)
@@ -391,10 +392,12 @@ console.log(appArgs.push(
   new Uint8Array(Buffer.from(intToBytes(RegEnd))),
   new Uint8Array(Buffer.from(intToBytes(VoteBegin))),
   new Uint8Array(Buffer.from(intToBytes(VoteEnd))),
- ))
- 
+ )) 
+
+ console.log('appargs', Buffer.from(intToBytes(RegBegin)))
 // create new application
-// const appId =  createApp(creatorAddress, approval_program, clear_program , localInts, localBytes, globalInts, globalBytes, appArgs)
+const appId =  createApp(creatorAddress, approval_program, clear_program , localInts, localBytes, globalInts, globalBytes, appArgs)
+console.log(appId)
 
 // App  id 76296212
 // # wait for registration period to start

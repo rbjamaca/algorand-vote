@@ -13,9 +13,10 @@ import algosdk from'algosdk';
 
 const Wrapper = styled.div`
   display: flex;
+  background-color: #E9E9E9;
 `
 const Title = styled.h1`
-  color: #6C63FF;
+  color: #F28FA9;
   font-size: 77px;
   font-weight: 600;
   margin-top: 100px;
@@ -28,7 +29,7 @@ const SubHeading = styled.h4`
   text-align: center;
   margin: 48px;
 `
-export default function MainContent(){
+export default function MainContent({peraWallet}){
   const [showCandidate, setShowCandidate] = useState(false)
   const [showResult, setShowResult] = useState(false)
   const [data, setData] = useState([])
@@ -82,15 +83,15 @@ export default function MainContent(){
       <Container>
       <Row>
         <Col>
-          <Title>Decentralized Voting</Title>
+          <Title>Algorand BlackPink Bias Voting</Title>
           <SubText>Vote for the right candidate!</SubText>
-          <Button style={{backgroundColor: '#6C63FF'}} onClick={candidateHandler}>VOTE NOW</Button>
-          <Button style={{backgroundColor: 'green',  marginLeft:'24px'}} onClick={resultHandler}> RESULT</Button>
-          <CandidateModal show={showCandidate} onHide={() => setShowCandidate(false)}/>
+          <Button style={{backgroundColor: '#F28FA9', borderColor: '#F28FA9', borderWidth: '1px'}} onClick={candidateHandler}>VOTE NOW</Button>
+          <Button style={{backgroundColor: 'transparent', borderColor: '#F28FA9', borderWidth: '1px', color: '#F28FA9',  marginLeft:'24px'}} onClick={resultHandler}> RESULT</Button>
+          <CandidateModal peraWallet={peraWallet} show={showCandidate} onHide={() => setShowCandidate(false)}/>
           <ResultModal show={showResult} onHide={() => setShowResult(false)} data={data} loading={loading}/>
         </Col>
         <Col>
-          <img src={vote}  alt='vote'/>
+          {/* <img src={vote}  alt='vote'/> */}
         </Col>
       </Row>
       <SubHeading>HOW TO VOTE</SubHeading>

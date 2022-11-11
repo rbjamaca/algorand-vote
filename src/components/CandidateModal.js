@@ -2,7 +2,7 @@
 import { useState, useRef } from 'react';
 import {Modal, Button} from 'react-bootstrap'
 import styled from 'styled-components';
-import algosdk from'algosdk';
+import algosdk, {waitForConfirmation} from'algosdk';
 import { CONSTANTS } from './Constants';
 
 const RadioContainer = styled.div`
@@ -23,14 +23,15 @@ const RadioContainer = styled.div`
 
 
 export default function CandidateModal(props){
+  const { peraWallet } = props
   const [radioValue, setRadioValue] = useState(0);
-  let userAccount = useRef()
+  const [userAccount, setUserAccount] = useState(null)
 
   const radios = [
-    { name: 'John Doe', value: 'John Doe', party: 'PDP'},
-    { name: 'Lino Batilome', value: 'Lino Batilome', party: 'APC' },
-    { name: 'Alice Axe', value: 'Alice Axe', party: 'APGA' },
-    { name: 'Bob Marley', value: 'Bob Marley', party: 'ANPP' },
+    { name: 'Lalisa Manobal', value: 'Lalisa Manobal', party: 'LALISA'},
+    { name: 'Rosé Park Chaeyoung', value: 'Rosé Park Chaeyoung', party: 'ROSÉ' },
+    { name: 'Kim Jisoo', value: 'Kim Jisoo', party: 'RABBIT' },
+    { name: 'Jennie Kim', value: 'Jennie Kim', party: 'MANDU' },
   ];
 
   
@@ -41,57 +42,60 @@ let client = new algosdk.Algodv2(CONSTANTS.algodToken, CONSTANTS.baseServer, CON
 // call application with arguments
 const noop = async (index, choice)  => {
   try{
-    userAccount.current =   await AlgoSigner.accounts({
-      ledger: 'TestNet'
-    })
-    const sender = userAccount.current[0]['address']
-// console.log(userAccount.current[0]['address'])
-console.log(userAccount.current)
+    const userAccount = await peraWallet.reconnectSession()
+    console.log(userAccount, 'userAccount')
+    setUserAccount(userAccount)
+    const sender = userAccount[0]
 
-  let vote = "vote"
-  // let choice = localStorage.getItem("candidate")
-  // console.log("choice is " + choice)
-  const appArgs = []
-  appArgs.push(
-    new Uint8Array(Buffer.from(vote)),
-    new Uint8Array(Buffer.from(choice)),
-   )
-  let params = await client.getTransactionParams().do()
-    params.fee = 1000;
-    params.flatFee = true;
+    let vote = "vote"
+    // let choice = localStorage.getItem("candidate")
+    // console.log("choice is " + choice)
+    const appArgs = []
+    appArgs.push(
+      new Uint8Array(Buffer.from(vote)),
+      new Uint8Array(Buffer.from(choice)),
+    )
+    let params = await client.getTransactionParams().do()
+    const suggestedParams = await client.getTransactionParams().do();
 
-  // create unsigned transaction
-  let txn = algosdk.makeApplicationNoOpTxn(sender, params, index, appArgs)
+    // create unsigned transaction
+    let actionTx = algosdk.makeApplicationNoOpTxn(sender, suggestedParams, index, appArgs)
     // Sign the transaction
 
     // Use the AlgoSigner encoding library to make the transactions base64
-    const txn_b64 = await AlgoSigner.encoding.msgpackToBase64(txn.toByte());
+    // const txn_b64 = await AlgoSigner.encoding.msgpackToBase64(txn.toByte());
 
-    let signedTxs  = await AlgoSigner.signTxn([{txn: txn_b64}])
-    console.log(signedTxs)
+    // let signedTxs  = await AlgoSigner.signTxn([{txn: txn_b64}])
+    // console.log(signedTxs)
     
-    // Get the base64 encoded signed transaction and convert it to binary
-    let binarySignedTx = await AlgoSigner.encoding.base64ToMsgpack(signedTxs[0].blob);
+    // // Get the base64 encoded signed transaction and convert it to binary
+    // let binarySignedTx = await AlgoSigner.encoding.base64ToMsgpack(signedTxs[0].blob);
 
-    // Send the transaction through the SDK client
-    let txId = await client.sendRawTransaction(binarySignedTx).do();
-      console.log(txId)
+    // // Send the transaction through the SDK client
+    // let txId = await client.sendRawTransaction(binarySignedTx).do();
+    //   console.log(txId)
 
-    const confirmedTxn = await algosdk.waitForConfirmation(client, txId, 4);
+    // const confirmedTxn = await algosdk.waitForConfirmation(client, txId, 4);
+    const actionTxGroup = [{ txn: actionTx, signers: [sender] }];
+
+    const signedTx = await peraWallet.signTransaction([actionTxGroup]);
+    console.log(signedTx);
+    const { txId } = await client.sendRawTransaction(signedTx).do();
+    const confirmedTxn = await waitForConfirmation(client, txId, 2);
     console.log("confirmed" + confirmedTxn)
 
     //Get the completed Transaction
     console.log("Transaction " + txId + " confirmed in round " + confirmedTxn["confirmed-round"]);
 
-  // display results
-  let transactionResponse = await client.pendingTransactionInformation(txId).do();
-  console.log("Called app-id:",transactionResponse['txn']['txn']['apid'])
-  if (transactionResponse['global-state-delta'] !== undefined ) {
-      console.log("Global State updated:",transactionResponse['global-state-delta']);
-  }
-  if (transactionResponse['local-state-delta'] !== undefined ) {
-      console.log("Local State updated:",transactionResponse['local-state-delta']);
-  }
+    // display results
+    let transactionResponse = await client.pendingTransactionInformation(txId).do();
+    console.log("Called app-id:",transactionResponse['txn']['txn']['apid'])
+    if (transactionResponse['global-state-delta'] !== undefined ) {
+        console.log("Global State updated:",transactionResponse['global-state-delta']);
+    }
+    if (transactionResponse['local-state-delta'] !== undefined ) {
+        console.log("Local State updated:",transactionResponse['local-state-delta']);
+    }
   }catch(err){
     console.log(err)
   }
