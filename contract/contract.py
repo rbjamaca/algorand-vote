@@ -58,6 +58,8 @@ def approval_program():
         ]
     )
 
+    get_if_optedIn = App.optedIn(Int(1), Int(0)),
+
     program = Cond(
         [Txn.application_id() == Int(0), on_creation],
         [Txn.on_completion() == OnComplete.DeleteApplication, Return(is_creator)],
@@ -65,6 +67,7 @@ def approval_program():
         [Txn.on_completion() == OnComplete.CloseOut, on_closeout],
         [Txn.on_completion() == OnComplete.OptIn, on_register],
         [Txn.application_args[0] == Bytes("vote"), on_vote],
+        [Txn.application_args[0] == Bytes("optedIn"), get_if_optedIn],
     )
 
     return program

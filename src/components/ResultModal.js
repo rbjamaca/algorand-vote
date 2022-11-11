@@ -45,10 +45,10 @@ let value = 0
           </Col>
           <Col>
             <Row>
-              <Col>
+              {/* <Col>
                 <p>Staked Voted so far </p>
                 <h5>0 Algo</h5>
-              </Col>
+              </Col> */}
               <Col>
                 <p>Governors Voted </p>
                 {
