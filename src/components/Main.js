@@ -84,7 +84,7 @@ export default function MainContent({peraWallet}){
       <Row>
         <Col>
           <Title>Algorand BlackPink Bias Voting</Title>
-          <SubText>Vote for the right candidate!</SubText>
+          <SubText>Who's your bias?</SubText>
           <Button style={{backgroundColor: '#F28FA9', borderColor: '#F28FA9', borderWidth: '1px'}} onClick={candidateHandler}>VOTE NOW</Button>
           <Button style={{backgroundColor: 'transparent', borderColor: '#F28FA9', borderWidth: '1px', color: '#F28FA9',  marginLeft:'24px'}} onClick={resultHandler}> RESULT</Button>
           <CandidateModal peraWallet={peraWallet} show={showCandidate} onHide={() => setShowCandidate(false)}/>
