@@ -1,7 +1,7 @@
 import { useState} from 'react'
 import {Button, Row, Col, Container} from 'react-bootstrap'
 import styled from 'styled-components'
-import vote from '../assets/images/vote.svg'
+import vote from '../assets/images/bp.jpeg'
 import voting from '../assets/images/voting.svg'
 import select from '../assets/images/select.svg'
 import result from '../assets/images/result.svg'
@@ -10,6 +10,7 @@ import CandidateModal from './CandidateModal'
 import ResultModal from './ResultModal'
 import { CONSTANTS } from './Constants'
 import algosdk from'algosdk';
+import MessageAlert from './Alert'
 
 const Wrapper = styled.div`
   display: flex;
@@ -29,10 +30,11 @@ const SubHeading = styled.h4`
   text-align: center;
   margin: 48px;
 `
-export default function MainContent({peraWallet}){
+export default function MainContent({peraWallet, optedIn}){
   const [showCandidate, setShowCandidate] = useState(false)
   const [showResult, setShowResult] = useState(false)
   const [data, setData] = useState([])
+  const [alert, setAlert] = useState(false)
   const [loading, setLoading] = useState("")
 
    const client = new algosdk.Algodv2(CONSTANTS.algodToken, CONSTANTS.baseServer, CONSTANTS.port)
@@ -56,8 +58,16 @@ export default function MainContent({peraWallet}){
     btoa("Creator"),
   ]
 
-  const candidateHandler = () =>{
+  const candidateHandler = () => {
+    if (!optedIn) {
+      setAlert(true)
+      return
+    }
     setShowCandidate(true)
+  }
+
+  const handleClose = () => {
+    setAlert(false)
   }
 
   const resultHandler = async () =>{
@@ -83,15 +93,13 @@ export default function MainContent({peraWallet}){
       <Container>
       <Row>
         <Col>
-          <Title>Algorand BlackPink Bias Voting</Title>
+          <MessageAlert show={alert} close={() => handleClose()} variant={"danger"} title="Register First" message="Please register first before voting." />
+          <Title>Algorand BlackPink Popularity Vote</Title>
           <SubText>Who's your bias?</SubText>
           <Button style={{backgroundColor: '#F28FA9', borderColor: '#F28FA9', borderWidth: '1px'}} onClick={candidateHandler}>VOTE NOW</Button>
           <Button style={{backgroundColor: 'transparent', borderColor: '#F28FA9', borderWidth: '1px', color: '#F28FA9',  marginLeft:'24px'}} onClick={resultHandler}> RESULT</Button>
           <CandidateModal peraWallet={peraWallet} show={showCandidate} onHide={() => setShowCandidate(false)}/>
           <ResultModal show={showResult} onHide={() => setShowResult(false)} data={data} loading={loading}/>
-        </Col>
-        <Col>
-          {/* <img src={vote}  alt='vote'/> */}
         </Col>
       </Row>
       <SubHeading>HOW TO VOTE</SubHeading>

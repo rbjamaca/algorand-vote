@@ -6,7 +6,7 @@ import { CONSTANTS } from './Constants';
 import algosdk, { waitForConfirmation } from 'algosdk';
 import MessageAlert from './Alert';
 
-export default function Header({ peraWallet }) {
+export default function Header({ peraWallet, optedIn, setOptedIn }) {
   let client = new algosdk.Algodv2(CONSTANTS.algodToken, CONSTANTS.baseServer, CONSTANTS.port)
   const [alert, setAlert] = useState(false)
   const [userAccount, setUserAccount] = useState(null)
@@ -18,6 +18,7 @@ export default function Header({ peraWallet }) {
     peraWallet.connect().then((newAccounts) => {
       // setup the disconnect event listener
       peraWallet.connector?.on('disconnect', handleDisconnectWalletClick);
+      checkOptedIn(newAccounts[0], CONSTANTS.APP_ID)
       setUserAccount(newAccounts)
     });
   }
@@ -35,6 +36,7 @@ export default function Header({ peraWallet }) {
       peraWallet.connector?.on('disconnect', handleDisconnectWalletClick);
 
       if (accounts.length) {
+        checkOptedIn(accounts[0], appIndex)
         setUserAccount(accounts);
       }
     })
@@ -60,10 +62,25 @@ export default function Header({ peraWallet }) {
       const { txId } = await client.sendRawTransaction(signedTx).do();
       const result = await waitForConfirmation(client, txId, 2);
       console.log(`Success`);
+      setOptedIn(true)
     } catch (e) {
-      console.error(`There was an error calling the counter app: ${e}`);
+      console.error(`There was an error calling the app: ${e}`);
     }
   }
+
+  const checkOptedIn = async (sender, index) => {
+    try {
+      let appInfo = await client.accountApplicationInformation(sender, index).do();
+      if (appInfo['app-local-state']) {
+        setOptedIn(true)
+      }
+    } catch (e) {
+      setOptedIn(false)
+      // console.error(`There was an error calling the app: ${e}`);
+    }
+  }
+
+
   const register = () => {
     console.log(userAccount)
     if (userAccount === null) {
@@ -98,7 +115,7 @@ export default function Header({ peraWallet }) {
           </Col>
           <Col md='4' style={{ display: 'inline' }}>
             {/* <h4>Voting Ends in </h4> */}
-            <Button style={{ backgroundColor: 'black' }} onClick={() => register()}>Register</Button>
+            {!optedIn && <Button style={{ backgroundColor: 'black' }} onClick={() => register()}>Register</Button>}
             {/* <h4 id='demo' style={{color: 'red'}}></h4> */}
             <MessageAlert show={alert} close={() => handleClose()} variant={"danger"} title="Connect Wallet" message="Please connect your wallet" />
           </Col>

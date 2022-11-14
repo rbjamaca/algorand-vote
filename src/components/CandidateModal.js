@@ -13,7 +13,8 @@ const RadioContainer = styled.div`
   justify-content: space-between;
   flex-direction: row-reverse;
   &:hover {
-    background-color: #2ff;
+    background-color: #F28FA9;
+    color: white;
   }
   .title{
     font-size: 24px;
@@ -96,8 +97,11 @@ const noop = async (index, choice)  => {
     if (transactionResponse['local-state-delta'] !== undefined ) {
         console.log("Local State updated:",transactionResponse['local-state-delta']);
     }
+    props.onHide()
   }catch(err){
+    props.onHide()
     console.log(err)
+    alert('You have already voted.')
   }
 }
 
@@ -119,7 +123,7 @@ const submitVoteHandler = ()=>{
     >
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter">
-          Presidential Candidates
+          BlackPink Members
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
@@ -129,7 +133,7 @@ const submitVoteHandler = ()=>{
             <RadioContainer key={idx} >
               <input type="radio" id={radio.name} name="candidates" value={radio.value} checked={radioValue === radio.value}
             onChange={(e) => setRadioValue(e.currentTarget.value)}/>
-                <label className='title' for={radio.name}>
+                <label className='title' htmlFor={radio.name}>
                   {radio.name}
                   <p>{radio.party}</p>
                 </label>
@@ -138,7 +142,7 @@ const submitVoteHandler = ()=>{
       </div>
       </Modal.Body>
        <Modal.Footer>
-        <Button onClick={() =>submitVoteHandler()}>Submit Vote</Button>
+        <Button style={{backgroundColor: '#F28FA9', borderColor: '#F28FA9'}} onClick={() =>submitVoteHandler()}>Submit Vote</Button>
       </Modal.Footer>
       
     </Modal>

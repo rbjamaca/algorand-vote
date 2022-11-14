@@ -12,8 +12,8 @@ const { btoa } = require('buffer');
   const globalBytes = 1;
 
   // get accounts from mnemonic
-  const creatorMnemonic = "scan wheel heavy boy feature mind achieve crew comfort gauge valve crew assume doll pyramid insane toe tiger shed prevent color gown oil able inmate"
-  const userMnemonic = "hotel hole fox quit trend manage universe name sketch maximum toast normal develop favorite actual bean extra husband casual acquire seminar float moment ability nose"
+  const creatorMnemonic = "stuff section dust toast point access air torch minimum arctic own what eyebrow bonus fish symptom sport forget network virus tomato green swamp above sorry"
+  const userMnemonic = "stuff section dust toast point access air torch minimum arctic own what eyebrow bonus fish symptom sport forget network virus tomato green swamp above sorry"
   const creatorAccount = algosdk.mnemonicToSecretKey(creatorMnemonic)
   const userAccout =  algosdk.mnemonicToSecretKey(userMnemonic)
   const creatorSecret = creatorAccount.sk
@@ -42,8 +42,8 @@ const { btoa } = require('buffer');
   let clear_state_program = ''
 
   try {
-    approvalProgram = fs.readFileSync('../contract/vote_approval.teal', 'utf8')
-    clear_state_program = fs.readFileSync('../contract/vote_clear_state.teal', 'utf8')
+    approvalProgram = fs.readFileSync('./contract/approval.teal', 'utf8')
+    clear_state_program = fs.readFileSync('./contract/clear.teal', 'utf8')
     console.log(approvalProgram)
     console.log(clear_state_program)
   } catch (err) {
@@ -111,6 +111,7 @@ const createApp = async (sender,
             let transactionResponse = await client.pendingTransactionInformation(txId).do()
             let appId = transactionResponse['application-index'];
             console.log("Created new app-id: ",appId);
+            return appId
       }catch(err){
       console.log(err)
     }
@@ -396,8 +397,8 @@ console.log(appArgs.push(
 
  console.log('appargs', Buffer.from(intToBytes(RegBegin)))
 // create new application
-const appId =  createApp(creatorAddress, approval_program, clear_program , localInts, localBytes, globalInts, globalBytes, appArgs)
-console.log(appId)
+const appId =  await createApp(creatorAddress, approval_program, clear_program , localInts, localBytes, globalInts, globalBytes, appArgs)
+console.log('appid', appId)
 
 // App  id 76296212
 // # wait for registration period to start
@@ -416,30 +417,30 @@ console.log(appId)
 
 // waitForRound(client, voteEnd)
 
-const gloablState = await readGlobalState(76645072)
-console.log(gloablState)
+// const gloablState = await readGlobalState(appId)
+// console.log(gloablState)
 
-//Converting to base64
-// var encodedString = btoa(string)
+// //Converting to base64
+// // var encodedString = btoa(string)
 
-const args = [
-  btoa("RegBegin"),
-  btoa("RegEnd"),
-  btoa("VoteBegin"),
-  btoa("VoteEnd"),
-  btoa("Creator"),
-  // btoa("choiceA"),
-]
+// const args = [
+//   btoa("RegBegin"),
+//   btoa("RegEnd"),
+//   btoa("VoteBegin"),
+//   btoa("VoteEnd"),
+//   btoa("Creator"),
+//   // btoa("choiceA"),
+// ]
 
-let filteredItems = []
-gloablState.forEach(item => {
-  if (!args.includes(item.key)) {
-    filteredItems.push(item)
-  }
-})
-// const xx = Math.max.apply(Math, filteredItems.map(function(o) { return o.value.uint; }))
-let maxVote = filteredItems.reduce((max, item) => max.value.uint > item.value.uint ? max.key : item);
-console.log(atob(maxVote))
+// let filteredItems = []
+// gloablState.forEach(item => {
+//   if (!args.includes(item.key)) {
+//     filteredItems.push(item)
+//   }
+// })
+// // const xx = Math.max.apply(Math, filteredItems.map(function(o) { return o.value.uint; }))
+// let maxVote = filteredItems.reduce((max, item) => max.value.uint > item.value.uint ? max.key : item);
+// console.log(atob(maxVote))
 
 // closeOut(sender, 76641532)
 // deleteApp(creatorAddress, 76296212)
