@@ -36,7 +36,7 @@ let value = 0
             <tbody key={idx}>
               <tr>
                 <td>{radio.idx}</td>
-                <td>{atob(radio.key)}</td>
+                <td>{decodeURIComponent(escape(atob(radio.key)))}</td>
                 <td>{radio.value.uint}</td>
               </tr>
             </tbody>
